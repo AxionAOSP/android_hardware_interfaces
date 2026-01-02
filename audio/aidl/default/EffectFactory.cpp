@@ -39,6 +39,7 @@ namespace aidl::android::hardware::audio::effect {
 Factory::Factory(const std::string& file) : mConfig(EffectConfig(file)) {
     LOG(DEBUG) << __func__ << " with config file: " << file;
     loadEffectLibs();
+    loadHardcodedEffects();
 }
 
 Factory::~Factory() {
@@ -295,6 +296,31 @@ void Factory::getDlSyms_l(DlEntry& entry) {
                    << " handle: " << dlHandle << " with dlerror: " << dlerror();
         return;
     }
+}
+
+void Factory::loadHardcodedEffects() {
+    static const char* kViperLibPaths[] = {
+        "/vendor/lib64/soundfx/libviperaidl.so",
+        "/vendor/lib/soundfx/libviperaidl.so"
+    };
+
+    for (const char* libPath : kViperLibPaths) {
+        if (access(libPath, R_OK) != 0) {
+            continue;
+        }
+
+        Descriptor::Identity id;
+        id.type = getEffectTypeUuidViper();
+        id.uuid = getEffectImplUuidViper();
+        id.proxy = std::nullopt;
+
+        LOG(INFO) << __func__ << " loading hardcoded ViPER effect from " << libPath;
+        if (openEffectLibrary(id.uuid, libPath)) {
+            mIdentitySet.insert(std::move(id));
+        }
+        return;
+    }
+    LOG(DEBUG) << __func__ << " ViPER library not found, skipping";
 }
 
 }  // namespace aidl::android::hardware::audio::effect
