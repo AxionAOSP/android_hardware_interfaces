@@ -39,6 +39,7 @@ namespace aidl::android::hardware::audio::effect {
 Factory::Factory(const std::string& file) : mConfig(EffectConfig(file)) {
     LOG(DEBUG) << __func__ << " with config file: " << file;
     loadEffectLibs();
+    loadHardcodedEffects();
 }
 
 Factory::~Factory() {
@@ -295,6 +296,31 @@ void Factory::getDlSyms_l(DlEntry& entry) {
                    << " handle: " << dlHandle << " with dlerror: " << dlerror();
         return;
     }
+}
+
+void Factory::loadHardcodedEffects() {
+    static const char* kAxionFxLibPaths[] = {
+        "/vendor/lib64/soundfx/libaxionfxaidl.so",
+        "/vendor/lib/soundfx/libaxionfxaidl.so"
+    };
+
+    for (const char* libPath : kAxionFxLibPaths) {
+        if (access(libPath, R_OK) != 0) {
+            continue;
+        }
+
+        Descriptor::Identity id;
+        id.type = getEffectTypeUuidAxionFx();
+        id.uuid = getEffectImplUuidAxionFx();
+        id.proxy = std::nullopt;
+
+        LOG(INFO) << __func__ << " loading hardcoded AxionFx effect from " << libPath;
+        if (openEffectLibrary(id.uuid, libPath)) {
+            mIdentitySet.insert(std::move(id));
+        }
+        return;
+    }
+    LOG(DEBUG) << __func__ << " AxionFx library not found, skipping";
 }
 
 }  // namespace aidl::android::hardware::audio::effect
