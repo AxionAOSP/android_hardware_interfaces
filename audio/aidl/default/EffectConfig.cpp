@@ -16,6 +16,7 @@
 
 #include <optional>
 #include <string>
+#include <unistd.h>
 #define LOG_TAG "AHAL_EffectConfig"
 #include <android-base/logging.h>
 #include <media/AidlConversionCppNdk.h>
@@ -93,6 +94,25 @@ EffectConfig::EffectConfig(const std::string& file) {
     }
     LOG(DEBUG) << __func__ << " successfully parsed " << file << ", skipping " << mSkippedElements
                << " element(s)";
+
+    static const char* kAxionFxLibPaths[] = {
+        "/vendor/lib64/soundfx/libaxionfxaidl.so",
+        "/vendor/lib/soundfx/libaxionfxaidl.so"
+    };
+    for (const char* libPath : kAxionFxLibPaths) {
+        if (access(libPath, R_OK) == 0) {
+            mLibraryMap["axionfx"] = libPath;
+            Library lib;
+            lib.name = "axionfx";
+            lib.uuid = getEffectImplUuidAxionFx();
+            lib.type = getEffectTypeUuidAxionFx();
+            EffectLibraries effectLibs;
+            effectLibs.libraries.push_back(std::move(lib));
+            mEffectsMap["axionfx"] = std::move(effectLibs);
+            LOG(INFO) << __func__ << " injected AxionFx from " << libPath;
+            break;
+        }
+    }
 }
 
 std::vector<std::reference_wrapper<const tinyxml2::XMLElement>> EffectConfig::getChildren(
