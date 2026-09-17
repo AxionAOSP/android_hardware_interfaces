@@ -48,4 +48,6 @@ interface IPower {
   android.hardware.power.GpuHeadroomResult getGpuHeadroom(in android.hardware.power.GpuHeadroomParams params);
   oneway void sendCompositionData(in android.hardware.power.CompositionData[] data);
   oneway void sendCompositionUpdate(in android.hardware.power.CompositionUpdate update);
+  oneway void setNodeCeiling(in @utf8InCpp String nodePath, in long maxCeiling, in long minFloor);
+  oneway void clearNodeCeiling(in @utf8InCpp String nodePath);
 }

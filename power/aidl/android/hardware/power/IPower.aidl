@@ -197,4 +197,7 @@ interface IPower {
      * @param   update The aggregated composition update object.
      */
     oneway void sendCompositionUpdate(in CompositionUpdate update);
+
+    oneway void setNodeCeiling(in @utf8InCpp String nodePath, in long maxCeiling, in long minFloor);
+    oneway void clearNodeCeiling(in @utf8InCpp String nodePath);
 }
