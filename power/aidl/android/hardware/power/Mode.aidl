@@ -179,4 +179,10 @@ enum Mode {
      * a vehicle (such as Android Auto projection screen).
      */
     AUTOMOTIVE_PROJECTION,
+    APP_START,
+    UI_ANIMATION,
+    SYSTEM_UI,
+    FLING,
+    CPU_BENCHMARK,
+    GPU_BENCHMARK,
 }
